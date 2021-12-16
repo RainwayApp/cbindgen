@@ -206,6 +206,7 @@ impl<'a> Parser<'a> {
                         self.config.parse.expand.default_features,
                         &self.config.parse.expand.features,
                         self.config.parse.expand.profile,
+                        self.config.parse.expand.nightly_toolchain,
                     )
                     .map_err(|x| Error::CargoExpand(pkg.name.clone(), x))?;
                 let i = syn::parse_file(&s).map_err(|x| Error::ParseSyntaxError {

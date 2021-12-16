@@ -594,6 +594,8 @@ pub struct EnumConfig {
     /// Whether to generate empty, private default-constructors for tagged
     /// enums.
     pub private_default_tagged_enum_constructor: bool,
+    /// Whether to force all enums to use the C layout strategy, as if they have `[repr(C)]
+    pub force_repr_c: bool,
 }
 
 impl Default for EnumConfig {
@@ -613,6 +615,7 @@ impl Default for EnumConfig {
             derive_ostream: false,
             enum_class: true,
             private_default_tagged_enum_constructor: false,
+            force_repr_c: false,
         }
     }
 }
@@ -755,6 +758,9 @@ pub struct ParseExpandConfig {
     pub features: Option<Vec<String>>,
     /// Controls whether or not to pass `--release` when expanding.
     pub profile: Profile,
+    /// Whether to find and use nightly toolchain for expansion rather than the default.
+    /// This is equivalent to adding `+nightly` to `cargo` when building.
+    pub nightly_toolchain: bool,
 }
 
 impl Default for ParseExpandConfig {
@@ -765,6 +771,7 @@ impl Default for ParseExpandConfig {
             default_features: true,
             features: None,
             profile: Profile::Debug,
+            nightly_toolchain: false,
         }
     }
 }
@@ -797,6 +804,7 @@ fn retrocomp_parse_expand_config_deserialize<'de, D: Deserializer<'de>>(
                 default_features: true,
                 features: None,
                 profile: Profile::Debug,
+                nightly_toolchain: false,
             })
         }
 

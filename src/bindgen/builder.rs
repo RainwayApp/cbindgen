@@ -237,6 +237,12 @@ impl Builder {
     }
 
     #[allow(unused)]
+    pub fn with_parse_expand_nightly_toolchain(mut self, use_nightly_toolchain: bool) -> Builder {
+        self.config.parse.expand.nightly_toolchain = use_nightly_toolchain;
+        self
+    }
+
+    #[allow(unused)]
     pub fn with_parse_expand_profile(mut self, profile: Profile) -> Builder {
         self.config.parse.expand.profile = profile;
         self
