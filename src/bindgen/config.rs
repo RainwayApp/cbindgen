@@ -594,8 +594,10 @@ pub struct EnumConfig {
     /// Whether to generate empty, private default-constructors for tagged
     /// enums.
     pub private_default_tagged_enum_constructor: bool,
-    /// Whether to force all enums to use the C layout strategy, as if they have `[repr(C)]
-    pub force_repr_c: bool,
+    /// A list of representation values from https://doc.rust-lang.org/nomicon/other-reprs.html
+    /// that will be treated as if they had `[repr(C)]` instead.
+    /// For example: `["u32", "i32"]` would treat `[repr(u32)]` and `[repr(i32)]` as `[repr(C)]`, respectively.
+    pub force_repr_c: Vec<String>,
 }
 
 impl Default for EnumConfig {
@@ -615,7 +617,7 @@ impl Default for EnumConfig {
             derive_ostream: false,
             enum_class: true,
             private_default_tagged_enum_constructor: false,
-            force_repr_c: false,
+            force_repr_c: vec![],
         }
     }
 }

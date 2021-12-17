@@ -20,6 +20,8 @@ use crate::bindgen::rename::{IdentifierType, RenameRule};
 use crate::bindgen::reserved;
 use crate::bindgen::writer::{ListType, Source, SourceWriter};
 
+use super::ReprType;
+
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 pub enum VariantBody {
@@ -662,6 +664,7 @@ impl Item for Enum {
 impl Source for Enum {
     fn write<F: Write>(&self, config: &Config, out: &mut SourceWriter<F>) {
         let size = self.repr.ty.map(|ty| ty.to_primitive().to_repr_c(config));
+        let rust_size = self.repr.ty.map(|ty| ty.to_primitive().to_repr_rust());
         let has_data = self.tag.is_some();
         let inline_tag_field = Self::inline_tag_field(&self.repr);
         let tag_name = self.tag_name();
@@ -680,7 +683,7 @@ impl Source for Enum {
         }
 
         // Emit the tag enum and everything related to it.
-        self.write_tag_enum(config, out, size, has_data, tag_name);
+        self.write_tag_enum(config, out, size, rust_size, has_data, tag_name);
 
         // If the enum has data, we need to emit structs for the variants and gather them together.
         if has_data {
@@ -749,14 +752,24 @@ impl Enum {
         config: &Config,
         out: &mut SourceWriter<F>,
         size: Option<&str>,
+        rust_size: Option<&str>,
         has_data: bool,
         tag_name: &str,
     ) {
+        // determine if we should force no sizing (e.g. `[repr(C)]`) below
+        let force_no_size = match rust_size {
+            Some(prim) => config.enumeration.force_repr_c.contains(&prim.to_string()),
+            None => false,
+        };
+
         // Open the tag enum.
         match config.language {
             Language::C => {
-                if size.is_some() && !config.enumeration.force_repr_c {
+                if size.is_some() && !force_no_size {
                     let prim = size.unwrap();
+
+                    info!("{}", prim);
+
                     // If we need to specify size, then we have no choice but to create a typedef,
                     // so `config.style` is not respected.
                     write!(out, "enum {}", tag_name);
@@ -820,7 +833,7 @@ impl Enum {
 
         // Close the tag enum.
         if config.language == Language::C
-            && (size.is_none() || config.enumeration.force_repr_c)
+            && (size.is_none() || force_no_size)
             && config.style.generate_typedef()
         {
             out.close_brace(false);
@@ -832,7 +845,7 @@ impl Enum {
         // Emit typedef specifying the tag enum's size if necessary.
         // In C++ enums can "inherit" from numeric types (`enum E: uint8_t { ... }`),
         // but in C `typedef uint8_t E` is the only way to give a fixed size to `E`.
-        if size.is_some() && !config.enumeration.force_repr_c {
+        if size.is_some() && !force_no_size {
             let prim = size.unwrap();
             if config.cpp_compatible_c() {
                 out.new_line_if_not_start();
