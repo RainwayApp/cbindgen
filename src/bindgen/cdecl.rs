@@ -92,12 +92,6 @@ impl CDecl {
                 )
             })
             .collect();
-
-        // apply the convention as a qualifier, if we have one
-        if let Some(conv) = config.function.convention(&f.annotations) {
-            self.type_qualifers = conv;
-        }
-
         self.declarators
             .push(CDeclarator::Func(args, layout_vertical));
         self.build_type(&f.ret, false, config);

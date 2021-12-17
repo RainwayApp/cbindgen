@@ -421,8 +421,6 @@ impl LayoutConfig {
 pub struct FunctionConfig {
     /// Optional text to output before each function declaration
     pub prefix: Option<String>,
-    /// Optional calling convention to emit in each function declaration
-    pub convention: Option<String>,
     /// Optional text to output after each function declaration
     pub postfix: Option<String>,
     /// The way to annotation this function as #[must_use]
@@ -443,7 +441,6 @@ impl Default for FunctionConfig {
     fn default() -> FunctionConfig {
         FunctionConfig {
             prefix: None,
-            convention: None,
             postfix: None,
             must_use: None,
             args: Layout::Auto,
@@ -468,13 +465,6 @@ impl FunctionConfig {
             return x;
         }
         self.postfix.clone()
-    }
-
-    pub(crate) fn convention(&self, annotations: &AnnotationSet) -> Option<String> {
-        if let Some(x) = annotations.atom("convention") {
-            return x;
-        }
-        self.convention.clone()
     }
 }
 
