@@ -21,6 +21,8 @@ use std::path::Path;
 use std::process::{Command, Output};
 use std::str::Utf8Error;
 
+use crate::bindgen::Cargo;
+
 #[derive(Clone, Deserialize, Debug)]
 /// Starting point for metadata returned by `cargo metadata`
 pub struct Metadata {
@@ -235,7 +237,7 @@ pub fn metadata(
                 None
             };
 
-            let cargo = env::var("CARGO").unwrap_or_else(|_| String::from("cargo"));
+            let cargo = Cargo::path().unwrap_or_else(|_| String::from("cargo"));
             let mut cmd = Command::new(cargo);
             cmd.arg("metadata");
             cmd.arg("--all-features");

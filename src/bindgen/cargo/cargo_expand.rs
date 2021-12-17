@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 use crate::bindgen::config::Profile;
+use crate::bindgen::Cargo;
 use std::env;
 use std::error;
 use std::fmt;
@@ -68,8 +69,9 @@ pub fn expand(
     expand_default_features: bool,
     expand_features: &Option<Vec<String>>,
     profile: Profile,
+    use_nightly: bool,
 ) -> Result<String, Error> {
-    let cargo = env::var("CARGO").unwrap_or_else(|_| String::from("cargo"));
+    let cargo = Cargo::path().unwrap_or_else(|_| String::from("cargo"));
     let mut cmd = Command::new(cargo);
 
     let mut _temp_dir = None; // drop guard
@@ -90,7 +92,12 @@ pub fn expand(
     // cbindgen
     cmd.env("_CBINDGEN_IS_RUNNING", "1");
 
+    if use_nightly {
+        cmd.arg("+nightly");
+    }
+
     cmd.arg("rustc");
+
     cmd.arg("--lib");
     // When build with the release profile we can't choose the `check` profile.
     if profile != Profile::Release {

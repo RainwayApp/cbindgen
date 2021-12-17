@@ -4,6 +4,8 @@
 
 use std::path::{Path, PathBuf};
 
+use home::cargo_home;
+
 use crate::bindgen::cargo::cargo_expand;
 use crate::bindgen::cargo::cargo_lock::{self, Lock};
 pub(crate) use crate::bindgen::cargo::cargo_metadata::PackageRef;
@@ -237,6 +239,7 @@ impl Cargo {
         expand_default_features: bool,
         expand_features: &Option<Vec<String>>,
         profile: Profile,
+        use_nightly: bool,
     ) -> Result<String, cargo_expand::Error> {
         cargo_expand::expand(
             &self.manifest_path,
@@ -247,6 +250,19 @@ impl Cargo {
             expand_default_features,
             expand_features,
             profile,
+            use_nightly,
         )
+    }
+
+    pub(crate) fn path() -> Result<String, std::io::Error> {
+        let mut cargo_path = cargo_home()?.join("bin");
+
+        if cfg!(windows) {
+            cargo_path = cargo_path.join("cargo.exe");
+        } else {
+            cargo_path = cargo_path.join("cargo");
+        }
+
+        Ok(cargo_path.to_str().unwrap().to_owned())
     }
 }

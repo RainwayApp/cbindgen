@@ -421,6 +421,8 @@ impl LayoutConfig {
 pub struct FunctionConfig {
     /// Optional text to output before each function declaration
     pub prefix: Option<String>,
+    /// Optional calling convention to emit in each function declaration
+    pub convention: Option<String>,
     /// Optional text to output after each function declaration
     pub postfix: Option<String>,
     /// The way to annotation this function as #[must_use]
@@ -441,6 +443,7 @@ impl Default for FunctionConfig {
     fn default() -> FunctionConfig {
         FunctionConfig {
             prefix: None,
+            convention: None,
             postfix: None,
             must_use: None,
             args: Layout::Auto,
@@ -465,6 +468,13 @@ impl FunctionConfig {
             return x;
         }
         self.postfix.clone()
+    }
+
+    pub(crate) fn convention(&self, annotations: &AnnotationSet) -> Option<String> {
+        if let Some(x) = annotations.atom("convention") {
+            return x;
+        }
+        self.convention.clone()
     }
 }
 
@@ -594,6 +604,10 @@ pub struct EnumConfig {
     /// Whether to generate empty, private default-constructors for tagged
     /// enums.
     pub private_default_tagged_enum_constructor: bool,
+    /// A list of representation values from https://doc.rust-lang.org/nomicon/other-reprs.html
+    /// that will be treated as if they had `[repr(C)]` instead.
+    /// For example: `["u32", "i32"]` would treat `[repr(u32)]` and `[repr(i32)]` as `[repr(C)]`, respectively.
+    pub force_repr_c: Vec<String>,
 }
 
 impl Default for EnumConfig {
@@ -613,6 +627,7 @@ impl Default for EnumConfig {
             derive_ostream: false,
             enum_class: true,
             private_default_tagged_enum_constructor: false,
+            force_repr_c: vec![],
         }
     }
 }
@@ -755,6 +770,9 @@ pub struct ParseExpandConfig {
     pub features: Option<Vec<String>>,
     /// Controls whether or not to pass `--release` when expanding.
     pub profile: Profile,
+    /// Whether to find and use nightly toolchain for expansion rather than the default.
+    /// This is equivalent to adding `+nightly` to `cargo` when building.
+    pub nightly_toolchain: bool,
 }
 
 impl Default for ParseExpandConfig {
@@ -765,6 +783,7 @@ impl Default for ParseExpandConfig {
             default_features: true,
             features: None,
             profile: Profile::Debug,
+            nightly_toolchain: false,
         }
     }
 }
@@ -797,6 +816,7 @@ fn retrocomp_parse_expand_config_deserialize<'de, D: Deserializer<'de>>(
                 default_features: true,
                 features: None,
                 profile: Profile::Debug,
+                nightly_toolchain: false,
             })
         }
 

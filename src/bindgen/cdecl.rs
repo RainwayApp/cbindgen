@@ -20,7 +20,7 @@ enum CDeclarator {
         is_ref: bool,
     },
     Array(String),
-    Func(Vec<(Option<String>, CDecl)>, bool),
+    Func(Vec<(Option<String>, CDecl)>, bool, Option<String>),
 }
 
 impl CDeclarator {
@@ -92,8 +92,11 @@ impl CDecl {
                 )
             })
             .collect();
-        self.declarators
-            .push(CDeclarator::Func(args, layout_vertical));
+        self.declarators.push(CDeclarator::Func(
+            args,
+            layout_vertical,
+            config.function.convention(&f.annotations),
+        ));
         self.build_type(&f.ret, false, config);
     }
 
@@ -172,7 +175,7 @@ impl CDecl {
                     is_nullable: true,
                     is_ref: false,
                 });
-                self.declarators.push(CDeclarator::Func(args, false));
+                self.declarators.push(CDeclarator::Func(args, false, None));
                 self.build_type(ret, false, config);
             }
         }
@@ -231,9 +234,13 @@ impl CDecl {
                         out.write("(");
                     }
                 }
-                CDeclarator::Func(..) => {
+                CDeclarator::Func(_, _, ref convention) => {
                     if next_is_pointer {
                         out.write("(");
+                    }
+
+                    if let Some(conv) = convention {
+                        write!(out, "{} ", conv);
                     }
                 }
             }
@@ -262,7 +269,7 @@ impl CDecl {
 
                     last_was_pointer = false;
                 }
-                CDeclarator::Func(ref args, layout_vertical) => {
+                CDeclarator::Func(ref args, layout_vertical, _) => {
                     if last_was_pointer {
                         out.write(")");
                     }
