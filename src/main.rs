@@ -76,6 +76,10 @@ fn apply_config_overrides<'a>(config: &mut Config, matches: &ArgMatches<'a>) {
     if matches.is_present("d") {
         config.parse.parse_deps = true;
     }
+
+    if matches.is_present("use-nightly-toolchain") {
+        config.parse.expand.nightly_toolchain = true;
+    }
 }
 
 fn load_bindings<'a>(input: &Path, matches: &ArgMatches<'a>) -> Result<Bindings, Error> {
@@ -261,6 +265,13 @@ fn main() {
                 .long("quiet")
                 .help("Report errors only (overrides verbosity options).")
                 .required(false),
+        )
+        .arg(
+            Arg::with_name("use-nightly-toolchain")
+                .long("use-nightly-toolchain")
+                .takes_value(false)
+                .help("Use cargo +nightly for code expansion")
+                .required(false)
         )
         .get_matches();
 

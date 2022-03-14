@@ -1021,7 +1021,7 @@ impl Parse {
             return;
         }
 
-        let bitflags = match bitflags::parse(item.mac.tokens.clone()) {
+        let mut bitflags = match bitflags::parse(item.mac.tokens.clone()) {
             Ok(b) => b,
             Err(e) => {
                 warn!("Failed to parse bitflags invocation: {:?}", e);
@@ -1029,11 +1029,7 @@ impl Parse {
             }
         };
 
-        let (struct_, impl_) = bitflags.expand();
-        self.load_syn_struct(config, crate_name, mod_cfg, &struct_);
-        // We know that the expansion will only reference `struct_`, so it's
-        // fine to just do it here instead of deferring it like we do with the
-        // other calls to this function.
-        self.load_syn_assoc_consts_from_impl(crate_name, mod_cfg, &impl_);
+        let bitflag_enum = bitflags.expand(&config.enumeration.force_repr_c);
+        self.load_syn_enum(config, crate_name, mod_cfg, &bitflag_enum);
     }
 }

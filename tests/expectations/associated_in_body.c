@@ -8,28 +8,27 @@
  *
  * These constants match Gecko's `NS_STYLE_ALIGN_*` constants.
  */
-typedef struct {
-  uint8_t bits;
+typedef enum {
+  /**
+   * 'auto'
+   */
+  AUTO = 0,
+  /**
+   * 'normal'
+   */
+  NORMAL = 1,
+  /**
+   * 'start'
+   */
+  START = (1 << 1),
+  /**
+   * 'end'
+   */
+  END = (1 << 2),
+  /**
+   * 'flex-start'
+   */
+  FLEX_START = (1 << 3),
 } StyleAlignFlags;
-/**
- * 'auto'
- */
-#define StyleAlignFlags_AUTO (StyleAlignFlags){ .bits = (uint8_t)0 }
-/**
- * 'normal'
- */
-#define StyleAlignFlags_NORMAL (StyleAlignFlags){ .bits = (uint8_t)1 }
-/**
- * 'start'
- */
-#define StyleAlignFlags_START (StyleAlignFlags){ .bits = (uint8_t)(1 << 1) }
-/**
- * 'end'
- */
-#define StyleAlignFlags_END (StyleAlignFlags){ .bits = (uint8_t)(1 << 2) }
-/**
- * 'flex-start'
- */
-#define StyleAlignFlags_FLEX_START (StyleAlignFlags){ .bits = (uint8_t)(1 << 3) }
 
 void root(StyleAlignFlags flags);

@@ -201,45 +201,6 @@ impl Struct {
             self.documentation.clone(),
         )
     }
-
-    fn emit_bitflags_binop<F: Write>(
-        &self,
-        operator: char,
-        other: &str,
-        out: &mut SourceWriter<F>,
-    ) {
-        out.new_line();
-        write!(
-            out,
-            "{} operator{}(const {}& {}) const",
-            self.export_name(),
-            operator,
-            self.export_name(),
-            other
-        );
-        out.open_brace();
-        write!(
-            out,
-            "return {{static_cast<decltype(bits)>(this->bits {} {}.bits)}};",
-            operator, other
-        );
-        out.close_brace(false);
-
-        out.new_line();
-        write!(
-            out,
-            "{}& operator{}=(const {}& {})",
-            self.export_name(),
-            operator,
-            self.export_name(),
-            other
-        );
-        out.open_brace();
-        write!(out, "*this = (*this {} {});", operator, other);
-        out.new_line();
-        write!(out, "return *this;");
-        out.close_brace(false);
-    }
 }
 
 impl Item for Struct {
@@ -538,32 +499,6 @@ impl Source for Struct {
                 .function
                 .rename_args
                 .apply("other", IdentifierType::FunctionArg);
-
-            if self
-                .annotations
-                .bool("internal-derive-bitflags")
-                .unwrap_or(false)
-            {
-                if !wrote_start_newline {
-                    wrote_start_newline = true;
-                    out.new_line();
-                }
-                out.new_line();
-                write!(out, "explicit operator bool() const");
-                out.open_brace();
-                write!(out, "return !!bits;");
-                out.close_brace(false);
-
-                out.new_line();
-                write!(out, "{} operator~() const", self.export_name());
-                out.open_brace();
-                write!(out, "return {{static_cast<decltype(bits)>(~bits)}};");
-                out.close_brace(false);
-
-                self.emit_bitflags_binop('|', &other, out);
-                self.emit_bitflags_binop('&', &other, out);
-                self.emit_bitflags_binop('^', &other, out);
-            }
 
             // Generate a serializer function that allows dumping this struct
             // to an std::ostream. It's defined as a friend function inside the

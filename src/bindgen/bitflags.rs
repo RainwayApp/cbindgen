@@ -3,7 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 use proc_macro2::TokenStream;
+use quote::ToTokens;
 use syn::parse::{Parse, ParseStream, Parser, Result as ParseResult};
+
+use crate::bindgen::ir::Repr;
 
 // $(#[$outer:meta])*
 // ($($vis:tt)*) $BitFlags:ident: $T:ty {
@@ -26,9 +29,9 @@ pub struct Bitflags {
 }
 
 impl Bitflags {
-    pub fn expand(&self) -> (syn::ItemStruct, syn::ItemImpl) {
+    pub fn expand(&mut self, force_repr_c: &[String]) -> syn::ItemEnum {
         let Bitflags {
-            ref attrs,
+            ref mut attrs,
             ref vis,
             ref name,
             ref repr,
@@ -36,22 +39,35 @@ impl Bitflags {
             ..
         } = *self;
 
-        let struct_ = parse_quote! {
-            /// cbindgen:internal-derive-bitflags=true
-            #(#attrs)*
-            #vis struct #name {
-                bits: #repr,
-            }
-        };
+        let repr_name = repr.into_token_stream().to_string();
 
-        let consts = flags.expand(name, repr);
-        let impl_ = parse_quote! {
-            impl #name {
+        if force_repr_c.contains(&repr_name) {
+            if let Some(pos) = attrs
+                .iter()
+                .position(|a| Repr::load(&[a.to_owned()]).is_ok())
+            {
+                info!(
+                    "Bitflags - removing existing repr because force_repr_c includes type {}",
+                    repr_name
+                );
+                attrs.remove(pos);
+            }
+
+            attrs.push(parse_quote! {
+                #[repr(C)]
+            })
+        }
+
+        let consts = flags.expand();
+
+        let enum_: syn::ItemEnum = parse_quote! {
+            #(#attrs)*
+            #vis enum #name {
                 #consts
             }
         };
 
-        (struct_, impl_)
+        enum_
     }
 }
 
@@ -85,7 +101,7 @@ struct Flag {
 }
 
 impl Flag {
-    fn expand(&self, struct_name: &syn::Ident, repr: &syn::Type) -> TokenStream {
+    fn expand(&self) -> TokenStream {
         let Flag {
             ref attrs,
             ref name,
@@ -94,7 +110,7 @@ impl Flag {
         } = *self;
         quote! {
             #(#attrs)*
-            pub const #name : #struct_name = #struct_name { bits: (#value) as #repr };
+            #name = #value,
         }
     }
 }
@@ -128,10 +144,10 @@ impl Parse for Flags {
 }
 
 impl Flags {
-    fn expand(&self, struct_name: &syn::Ident, repr: &syn::Type) -> TokenStream {
+    fn expand(&self) -> TokenStream {
         let mut ts = quote! {};
         for flag in &self.0 {
-            ts.extend(flag.expand(struct_name, repr));
+            ts.extend(flag.expand());
         }
         ts
     }
