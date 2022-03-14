@@ -9,17 +9,16 @@ cdef extern from *:
   # Constants shared by multiple CSS Box Alignment properties
   #
   # These constants match Gecko's `NS_STYLE_ALIGN_*` constants.
-  cdef struct StyleAlignFlags:
-    uint8_t bits;
-  # 'auto'
-  const StyleAlignFlags StyleAlignFlags_AUTO # = <StyleAlignFlags>{ <uint8_t>0 }
-  # 'normal'
-  const StyleAlignFlags StyleAlignFlags_NORMAL # = <StyleAlignFlags>{ <uint8_t>1 }
-  # 'start'
-  const StyleAlignFlags StyleAlignFlags_START # = <StyleAlignFlags>{ <uint8_t>(1 << 1) }
-  # 'end'
-  const StyleAlignFlags StyleAlignFlags_END # = <StyleAlignFlags>{ <uint8_t>(1 << 2) }
-  # 'flex-start'
-  const StyleAlignFlags StyleAlignFlags_FLEX_START # = <StyleAlignFlags>{ <uint8_t>(1 << 3) }
+  cdef enum StyleAlignFlags:
+    # 'auto'
+    AUTO # = 0,
+    # 'normal'
+    NORMAL # = 1,
+    # 'start'
+    START # = (1 << 1),
+    # 'end'
+    END # = (1 << 2),
+    # 'flex-start'
+    FLEX_START # = (1 << 3),
 
   void root(StyleAlignFlags flags);
