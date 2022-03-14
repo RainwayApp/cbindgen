@@ -20,8 +20,6 @@ use crate::bindgen::rename::{IdentifierType, RenameRule};
 use crate::bindgen::reserved;
 use crate::bindgen::writer::{ListType, Source, SourceWriter};
 
-use super::ReprType;
-
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 pub enum VariantBody {

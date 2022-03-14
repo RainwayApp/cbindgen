@@ -75,21 +75,27 @@ fn get_contents_of_dir(path: &Path) -> Vec<String> {
 #[test]
 #[serial]
 fn lib_default_uses_debug_build() {
-    let target_dir = build_using_lib(|b| b);
+    let target_dir = build_using_lib(|b| b.with_nightly_toolchain(true));
     assert_eq!(get_contents_of_dir(target_dir.path()), &["debug"]);
 }
 
 #[test]
 #[serial]
 fn lib_explicit_debug_build() {
-    let target_dir = build_using_lib(|b| b.with_parse_expand_profile(Profile::Debug));
+    let target_dir = build_using_lib(|b| {
+        b.with_parse_expand_profile(Profile::Debug)
+            .with_nightly_toolchain(true)
+    });
     assert_eq!(get_contents_of_dir(target_dir.path()), &["debug"]);
 }
 
 #[test]
 #[serial]
 fn lib_explicit_release_build() {
-    let target_dir = build_using_lib(|b| b.with_parse_expand_profile(Profile::Release));
+    let target_dir = build_using_lib(|b| {
+        b.with_parse_expand_profile(Profile::Release)
+            .with_nightly_toolchain(true)
+    });
     assert_eq!(get_contents_of_dir(target_dir.path()), &["release"]);
 }
 

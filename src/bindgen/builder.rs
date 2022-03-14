@@ -344,6 +344,12 @@ impl Builder {
         self
     }
 
+    #[allow(unused)]
+    pub fn with_nightly_toolchain(mut self, use_nightly_toolchain: bool) -> Builder {
+        self.config.parse.expand.nightly_toolchain = use_nightly_toolchain;
+        self
+    }
+
     pub fn generate(self) -> Result<Bindings, Error> {
         let mut result = Parse::new();
 

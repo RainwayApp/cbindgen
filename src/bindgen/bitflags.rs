@@ -61,7 +61,6 @@ impl Bitflags {
         let consts = flags.expand();
 
         let enum_: syn::ItemEnum = parse_quote! {
-            /// cbindgen:internal-derive-bitflags=true
             #(#attrs)*
             #vis enum #name {
                 #consts

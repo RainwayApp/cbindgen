@@ -47,10 +47,13 @@ fn run_cbindgen(
         command.arg("--config").arg(config);
     }
 
+    command.arg("--use-nightly-toolchain");
+
     command.arg(path);
 
     println!("Running: {:?}", command);
     let cbindgen_output = command.output().expect("failed to execute process");
+
     assert!(
         cbindgen_output.status.success(),
         "cbindgen failed: {:?} with error: {}",

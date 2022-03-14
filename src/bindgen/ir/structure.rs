@@ -539,32 +539,6 @@ impl Source for Struct {
                 .rename_args
                 .apply("other", IdentifierType::FunctionArg);
 
-            if self
-                .annotations
-                .bool("internal-derive-bitflags")
-                .unwrap_or(false)
-            {
-                if !wrote_start_newline {
-                    wrote_start_newline = true;
-                    out.new_line();
-                }
-                out.new_line();
-                write!(out, "explicit operator bool() const");
-                out.open_brace();
-                write!(out, "return !!bits;");
-                out.close_brace(false);
-
-                out.new_line();
-                write!(out, "{} operator~() const", self.export_name());
-                out.open_brace();
-                write!(out, "return {{static_cast<decltype(bits)>(~bits)}};");
-                out.close_brace(false);
-
-                self.emit_bitflags_binop('|', &other, out);
-                self.emit_bitflags_binop('&', &other, out);
-                self.emit_bitflags_binop('^', &other, out);
-            }
-
             // Generate a serializer function that allows dumping this struct
             // to an std::ostream. It's defined as a friend function inside the
             // struct definition, and doesn't need the `inline` keyword even
