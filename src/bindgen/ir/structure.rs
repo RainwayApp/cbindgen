@@ -201,45 +201,6 @@ impl Struct {
             self.documentation.clone(),
         )
     }
-
-    fn emit_bitflags_binop<F: Write>(
-        &self,
-        operator: char,
-        other: &str,
-        out: &mut SourceWriter<F>,
-    ) {
-        out.new_line();
-        write!(
-            out,
-            "{} operator{}(const {}& {}) const",
-            self.export_name(),
-            operator,
-            self.export_name(),
-            other
-        );
-        out.open_brace();
-        write!(
-            out,
-            "return {{static_cast<decltype(bits)>(this->bits {} {}.bits)}};",
-            operator, other
-        );
-        out.close_brace(false);
-
-        out.new_line();
-        write!(
-            out,
-            "{}& operator{}=(const {}& {})",
-            self.export_name(),
-            operator,
-            self.export_name(),
-            other
-        );
-        out.open_brace();
-        write!(out, "*this = (*this {} {});", operator, other);
-        out.new_line();
-        write!(out, "return *this;");
-        out.close_brace(false);
-    }
 }
 
 impl Item for Struct {

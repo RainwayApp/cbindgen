@@ -763,31 +763,30 @@ impl Enum {
         // Open the tag enum.
         match config.language {
             Language::C => {
-                if size.is_some() && !force_no_size {
-                    let prim = size.unwrap();
+                match size {
+                    Some(prim) if !force_no_size => {
+                        // If we need to specify size, then we have no choice but to create a typedef,
+                        // so `config.style` is not respected.
+                        write!(out, "enum {}", tag_name);
 
-                    info!("{}", prim);
-
-                    // If we need to specify size, then we have no choice but to create a typedef,
-                    // so `config.style` is not respected.
-                    write!(out, "enum {}", tag_name);
-
-                    if config.cpp_compatible_c() {
-                        out.new_line();
-                        out.write("#ifdef __cplusplus");
-                        out.new_line();
-                        write!(out, "  : {}", prim);
-                        out.new_line();
-                        out.write("#endif // __cplusplus");
-                        out.new_line();
+                        if config.cpp_compatible_c() {
+                            out.new_line();
+                            out.write("#ifdef __cplusplus");
+                            out.new_line();
+                            write!(out, "  : {}", prim);
+                            out.new_line();
+                            out.write("#endif // __cplusplus");
+                            out.new_line();
+                        }
                     }
-                } else {
-                    if config.style.generate_typedef() {
-                        out.write("typedef ");
-                    }
-                    out.write("enum");
-                    if config.style.generate_tag() {
-                        write!(out, " {}", tag_name);
+                    _ => {
+                        if config.style.generate_typedef() {
+                            out.write("typedef ");
+                        }
+                        out.write("enum");
+                        if config.style.generate_tag() {
+                            write!(out, " {}", tag_name);
+                        }
                     }
                 }
             }
@@ -843,22 +842,24 @@ impl Enum {
         // Emit typedef specifying the tag enum's size if necessary.
         // In C++ enums can "inherit" from numeric types (`enum E: uint8_t { ... }`),
         // but in C `typedef uint8_t E` is the only way to give a fixed size to `E`.
-        if size.is_some() && !force_no_size {
-            let prim = size.unwrap();
-            if config.cpp_compatible_c() {
-                out.new_line_if_not_start();
-                out.write("#ifndef __cplusplus");
-            }
+        match size {
+            Some(prim) if !force_no_size => {
+                if config.cpp_compatible_c() {
+                    out.new_line_if_not_start();
+                    out.write("#ifndef __cplusplus");
+                }
 
-            if config.language != Language::Cxx {
-                out.new_line();
-                write!(out, "{} {} {};", config.language.typedef(), prim, tag_name);
-            }
+                if config.language != Language::Cxx {
+                    out.new_line();
+                    write!(out, "{} {} {};", config.language.typedef(), prim, tag_name);
+                }
 
-            if config.cpp_compatible_c() {
-                out.new_line_if_not_start();
-                out.write("#endif // __cplusplus");
+                if config.cpp_compatible_c() {
+                    out.new_line_if_not_start();
+                    out.write("#endif // __cplusplus");
+                }
             }
+            _ => {}
         }
 
         // Emit convenience methods for the tag enum.
